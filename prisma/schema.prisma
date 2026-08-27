@@ -9,8 +9,12 @@ generator client {
 // enough when changing adapters.
 // See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled (via PgBouncer) - used for the app's normal request traffic.
+  url       = env("DATABASE_URL")
+  // Direct/unpooled - required for schema migrations (Prisma Migrate needs
+  // session-level behavior that the pooled connection doesn't support).
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model Session {

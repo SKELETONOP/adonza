@@ -203,11 +203,12 @@ GitHub repo, click deploy, done — no server administration.
    "Deploy from GitHub repo" → pick this repo. Railway will detect the
    `Dockerfile` and build from it automatically.
 
-3. **Add a Postgres database**: in the same Railway project, click "New" →
-   "Database" → "Add PostgreSQL". Railway automatically makes a
-   `DATABASE_URL` variable available — reference it in your web service's
-   variables as `${{Postgres.DATABASE_URL}}` (Railway's variable-reference
-   picker will offer this for you).
+3. **Database: skip Railway's "Add PostgreSQL" — this project uses Neon
+   instead.** See "Database: Neon" below for details. Grab the
+   **`production`** branch's connection strings with
+   `npx neon@latest connection-string --branch production` (add
+   `--pooled` for the pooled one) and use those for `DATABASE_URL` /
+   `DATABASE_URL_UNPOOLED` in step 4.
 
 4. **Set environment variables** on the web service (Settings → Variables):
    - `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` — from `shopify.app.toml` /
@@ -216,7 +217,8 @@ GitHub repo, click deploy, done — no server administration.
    - `SHOPIFY_APP_URL` — the Railway-provided URL (Settings → Networking →
      "Generate Domain" if you don't have one yet; you'll get something like
      `your-app.up.railway.app`).
-   - `DATABASE_URL` — the Postgres reference from step 3.
+   - `DATABASE_URL`, `DATABASE_URL_UNPOOLED` — the `production` branch
+     connection strings from step 3.
    - `NODE_ENV` — `production`
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`,
      `SMTP_FROM`, `FEEDBACK_NOTIFICATION_EMAIL` — same as your local `.env`,
@@ -239,14 +241,39 @@ GitHub repo, click deploy, done — no server administration.
 Render (render.com) works almost identically if you'd rather use that —
 same Dockerfile, same "add a Postgres, set env vars, deploy" flow.
 
-### Local development after this change
+### Database: Neon (not Railway's own Postgres)
 
-Local dev now also needs a real `DATABASE_URL` (SQLite is no longer used
-anywhere) — add it to your local `.env`. The simplest option: use the same
-Railway Postgres for local development too (fine for a low-traffic app;
-you can split into separate dev/prod databases later). After adding it,
-run `npx prisma migrate deploy` once to create the tables, then
-`npm run dev` as usual.
+This project actually uses [Neon](https://neon.tech) for Postgres — project
+**adonza** (`spring-rice-37354442`) in org **Optezo**
+(`org-fragrant-glade-73235864`) — rather than Railway's built-in database.
+Two branches exist:
+
+- **`production`** — the real database. This is what `DATABASE_URL` /
+  `DATABASE_URL_UNPOOLED` on your production host (Railway/Render) should
+  point at.
+- **`development`** — a copy-on-write branch off `production`, used for
+  local work so testing never touches real merchant data. Local `.env` is
+  currently checked out to this branch (see `.neon`, which is git-ignored).
+
+Useful commands (from the `neon` / `neon-postgres` agent skills installed
+in `.agents/skills/`):
+
+```
+npx neon@latest checkout development   # switch local .env back to the dev branch
+npx neon@latest checkout production    # switch local .env to production (careful!)
+npx neon@latest branches list          # see all branches
+npx neon env pull                      # re-pull the current branch's env vars
+```
+
+`DATABASE_URL` is the pooled connection (app queries); `DATABASE_URL_UNPOOLED`
+is direct (Prisma Migrate uses it automatically via `directUrl` in
+`prisma/schema.prisma`). Never swap these — running migrations over the
+pooled connection can fail in ways that don't obviously mention pooling.
+
+If you deploy on Railway/Render as described above, skip their "Add
+PostgreSQL" step entirely and just set `DATABASE_URL` /
+`DATABASE_URL_UNPOOLED` to the **`production`** branch's connection strings
+instead (`npx neon@latest connection-string --branch production`).
 
 ## Local development commands already verified in this environment
 
