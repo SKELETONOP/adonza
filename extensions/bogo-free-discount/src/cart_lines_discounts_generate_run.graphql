@@ -1,0 +1,13 @@
+query CartInput {
+  cart {
+    lines {
+      id
+      bogoRuleAttribute: attribute(key: "_bogo_rule_id") {
+        value
+      }
+    }
+  }
+  discount {
+    discountClasses
+  }
+}

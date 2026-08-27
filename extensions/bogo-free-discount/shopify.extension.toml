@@ -1,0 +1,17 @@
+api_version = "2026-07"
+
+[[extensions]]
+name = "t:name"
+handle = "bogo-free-discount"
+type = "function"
+uid = "7ffada5b-96e6-5f72-0aa5-5a05af85fc76ca3793a2"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

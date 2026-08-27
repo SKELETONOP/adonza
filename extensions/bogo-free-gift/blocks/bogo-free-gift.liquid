@@ -1,0 +1,14 @@
+{% comment %}
+  App embed block. Merchants turn this on once in Theme editor > App embeds.
+  It just loads the script that watches the cart and applies the merchant's
+  Buy X Get Y Free rules (configured in the app admin) automatically.
+{% endcomment %}
+<script src="{{ 'bogo.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Buy X Get Y Free",
+  "target": "body",
+  "settings": []
+}
+{% endschema %}

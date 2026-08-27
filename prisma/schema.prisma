@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                  String    @id
+  shop                String
+  state               String
+  isOnline            Boolean   @default(false)
+  scope               String?
+  expires             DateTime?
+  accessToken         String
+  userId              BigInt?
+  firstName           String?
+  lastName            String?
+  email               String?
+  accountOwner        Boolean   @default(false)
+  locale              String?
+  collaborator        Boolean?  @default(false)
+  emailVerified       Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// triggerMode:   "specific"  - only the products listed in RuleTriggerItem count
+//                "storewide" - any product in the cart counts
+// triggerBasis:  "quantity"  - condition is a unit count (uses triggerQuantity)
+//                "amount"    - condition is a cart subtotal (uses triggerAmount, in cents)
+model Rule {
+  id              String   @id @default(cuid())
+  shop            String
+  title           String
+  active          Boolean  @default(true)
+
+  triggerMode     String   @default("specific")
+  triggerBasis    String   @default("quantity")
+  triggerQuantity Int      @default(1)
+  triggerAmount   Int?
+  freeQuantity    Int      @default(1)
+
+  triggerItems    RuleTriggerItem[]
+  freeOptions     RuleFreeOption[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([shop])
+  @@index([shop, active])
+}
+
+// One eligible trigger product/variant for a "specific" rule. Ignored (and
+// normally empty) when the rule's triggerMode is "storewide".
+model RuleTriggerItem {
+  id           String  @id @default(cuid())
+  ruleId       String
+  rule         Rule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  productId    String
+  productTitle String
+  variantId    String
+  variantTitle String
+  imageUrl     String?
+
+  @@index([ruleId])
+}
+
+// One product/variant the shopper can choose as their free gift once the
+// rule's condition is met. A rule can offer several options; the shopper
+// picks exactly one via the storefront popup.
+model RuleFreeOption {
+  id           String  @id @default(cuid())
+  ruleId       String
+  rule         Rule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  productId    String
+  productTitle String
+  variantId    String
+  variantTitle String
+  imageUrl     String?
+
+  @@index([ruleId])
+}
+
+// Per-shop appearance settings for the storefront free-gift popup, plus the
+// id of this shop's automatic discount (see app/models/discount.server.ts)
+// that makes auto-added free-gift lines 100% off without ever touching the
+// product's real catalog price.
+model ShopSettings {
+  id                  String   @id @default(cuid())
+  shop                String   @unique
+  popupHeading        String   @default("You've unlocked a free gift!")
+  popupSubheading     String   @default("Choose which one you'd like:")
+  imageShape          String   @default("rounded") // "rounded" | "square"
+  titleColor          String   @default("#1a1a1a")
+  buttonColor         String   @default("#008060")
+  buttonTextColor     String   @default("#ffffff")
+  automaticDiscountId String?
+  updatedAt           DateTime @updatedAt
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  shop      String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([shop])
+}
