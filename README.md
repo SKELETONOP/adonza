@@ -166,6 +166,88 @@ in this sandbox:
    npm run deploy
    ```
 
+## Production deployment (going live)
+
+Three separate things need to happen for this app to run for real merchants
+instead of just your dev store:
+
+1. **The theme extension and discount Function** (`extensions/`) are hosted
+   *by Shopify* — `npm run deploy` uploads them. No separate hosting, no
+   cost.
+2. **The web app** (the Remix admin + API routes) needs to run 24/7 on a
+   real server with a stable HTTPS URL, instead of only while `npm run dev`
+   is open on your laptop.
+3. **The database** needs to be a real hosted Postgres instance instead of
+   the local `dev.sqlite` file — most hosting platforms wipe local files on
+   every deploy, so a SQLite file would lose all your merchants' rules.
+
+The schema (`prisma/schema.prisma`) is already set up for PostgreSQL, and
+`prisma/migrations/20260828000000_init` is a clean Postgres-native
+migration ready to run against a real database.
+
+### Recommended: Railway
+
+[Railway](https://railway.app) is a beginner-friendly host: connect a
+GitHub repo, click deploy, done — no server administration.
+
+1. **Push this repo to GitHub** (skip if already done):
+   ```
+   git remote add origin https://github.com/<your-username>/<repo-name>.git
+   git branch -M main
+   git push -u origin main
+   ```
+   (Create the empty repo first at github.com → "New repository" — don't
+   initialize it with a README, since this project already has one.)
+
+2. **Create a Railway project**: sign in at railway.app → "New Project" →
+   "Deploy from GitHub repo" → pick this repo. Railway will detect the
+   `Dockerfile` and build from it automatically.
+
+3. **Add a Postgres database**: in the same Railway project, click "New" →
+   "Database" → "Add PostgreSQL". Railway automatically makes a
+   `DATABASE_URL` variable available — reference it in your web service's
+   variables as `${{Postgres.DATABASE_URL}}` (Railway's variable-reference
+   picker will offer this for you).
+
+4. **Set environment variables** on the web service (Settings → Variables):
+   - `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` — from `shopify.app.toml` /
+     your Partner Dashboard app settings.
+   - `SCOPES` — `read_products,read_discounts,write_discounts`
+   - `SHOPIFY_APP_URL` — the Railway-provided URL (Settings → Networking →
+     "Generate Domain" if you don't have one yet; you'll get something like
+     `your-app.up.railway.app`).
+   - `DATABASE_URL` — the Postgres reference from step 3.
+   - `NODE_ENV` — `production`
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`,
+     `SMTP_FROM`, `FEEDBACK_NOTIFICATION_EMAIL` — same as your local `.env`,
+     for the feedback-form email.
+
+5. **Deploy**: Railway redeploys automatically on every push to `main`.
+   The Dockerfile's `docker-start` script runs `prisma migrate deploy`
+   before starting the server, so the database schema is created
+   automatically on first boot.
+
+6. **Point Shopify at the real URL**: update `application_url` and
+   `[app_proxy].url` in `shopify.app.toml` to your Railway domain (from
+   step 4), then run:
+   ```
+   npm run deploy
+   ```
+   This pushes the URL, scopes, and webhook config to Shopify. Existing
+   installs will be prompted to re-approve if scopes changed.
+
+Render (render.com) works almost identically if you'd rather use that —
+same Dockerfile, same "add a Postgres, set env vars, deploy" flow.
+
+### Local development after this change
+
+Local dev now also needs a real `DATABASE_URL` (SQLite is no longer used
+anywhere) — add it to your local `.env`. The simplest option: use the same
+Railway Postgres for local development too (fine for a low-traffic app;
+you can split into separate dev/prod databases later). After adding it,
+run `npx prisma migrate deploy` once to create the tables, then
+`npm run dev` as usual.
+
 ## Local development commands already verified in this environment
 
 ```
