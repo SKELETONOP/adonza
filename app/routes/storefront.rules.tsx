@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 
@@ -14,7 +14,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.public.appProxy(request);
 
   if (!session) {
-    return Response.json({ rules: [] });
+    return json({ rules: [] });
   }
 
   const rules = await db.rule.findMany({
@@ -41,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     },
   });
 
-  return Response.json(
+  return json(
     { rules },
     { headers: { "Cache-Control": "public, max-age=30" } },
   );

@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { getDesignSettings } from "../models/design.server";
 import { DEFAULT_DESIGN } from "../models/design";
@@ -10,12 +10,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.public.appProxy(request);
 
   if (!session) {
-    return Response.json(DEFAULT_DESIGN);
+    return json(DEFAULT_DESIGN);
   }
 
   const design = await getDesignSettings(session.shop);
 
-  return Response.json(design, {
+  return json(design, {
     headers: { "Cache-Control": "public, max-age=60" },
   });
 };

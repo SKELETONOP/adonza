@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { useActionData, useSubmit } from "@remix-run/react";
 import { Banner, BlockStack, Button } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
@@ -17,7 +17,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const existingCount = await db.rule.count({ where: { shop: session.shop } });
 
   if (existingCount >= limit) {
-    return Response.json(
+    return json(
       {
         error: `Your ${plan} plan allows ${
           limit === Infinity ? "unlimited" : `up to ${limit}`
