@@ -4,10 +4,14 @@ import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import themeStyles from "../styles/theme.css?url";
 
 import { authenticate } from "../shopify.server";
 
-export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
+export const links = () => [
+  { rel: "stylesheet", href: polarisStyles },
+  { rel: "stylesheet", href: themeStyles },
+];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
@@ -28,7 +32,9 @@ export default function App() {
         <Link to="/app/design">Popup design</Link>
         <Link to="/app/billing">Plans & billing</Link>
       </NavMenu>
-      <Outlet />
+      <div className="bogo-shell">
+        <Outlet />
+      </div>
     </AppProvider>
   );
 }

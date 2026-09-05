@@ -1,13 +1,13 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { useActionData, useSubmit } from "@remix-run/react";
-import { Banner, BlockStack, Button } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import RuleForm, { type RuleFormValues } from "../components/RuleForm";
 import { ensureAutomaticDiscount } from "../models/discount.server";
 import { getCurrentPlan } from "../models/billing.server";
 import { ruleLimitFor } from "../models/plans";
+import { UpgradeBanner } from "../components/ui";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, admin, billing } = await authenticate.admin(request);
@@ -85,14 +85,7 @@ export default function NewRule() {
       }
       banner={
         actionData?.error ? (
-          <Banner tone="warning" title="Rule limit reached">
-            <BlockStack gap="200">
-              <p>{actionData.error}</p>
-              <div>
-                <Button url="/app/billing">View plans</Button>
-              </div>
-            </BlockStack>
-          </Banner>
+          <UpgradeBanner message={actionData.error} actionUrl="/app/billing" />
         ) : undefined
       }
     />

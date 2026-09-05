@@ -9,7 +9,6 @@ import {
   BlockStack,
   List,
   Link,
-  Badge,
   InlineStack,
   Button,
   InlineGrid,
@@ -31,6 +30,7 @@ import db from "../db.server";
 import { getCurrentPlan } from "../models/billing.server";
 import { sendFeedbackEmail } from "../models/notify.server";
 import { ruleLimitFor } from "../models/plans";
+import { IconBadge, Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
@@ -73,12 +73,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 function QuickActionCard({
   icon,
+  color,
   title,
   description,
   buttonLabel,
   url,
 }: {
   icon: any;
+  color: "orange" | "purple" | "blue";
   title: string;
   description: string;
   buttonLabel: string;
@@ -89,9 +91,7 @@ function QuickActionCard({
     <Card>
       <BlockStack gap="300">
         <InlineStack gap="200" blockAlign="center">
-          <Box background="bg-fill-brand" borderRadius="200" padding="200">
-            <Icon source={icon} tone="base" />
-          </Box>
+          <IconBadge icon={icon} color={color} />
           <Text as="h3" variant="headingSm">
             {title}
           </Text>
@@ -164,7 +164,7 @@ export default function Index() {
   return (
     <Page
       title="Buy X, Get Y Free"
-      titleMetadata={<Badge tone="info">{`${plan} plan`}</Badge>}
+      titleMetadata={<Pill color="blue">{`${plan} plan`}</Pill>}
       subtitle="Automatic free gifts on your storefront — no theme code required."
       primaryAction={{
         content: "Create rule",
@@ -223,6 +223,7 @@ export default function Index() {
               <InlineGrid columns={{ xs: 1, sm: 3 }} gap="400">
                 <QuickActionCard
                   icon={GiftCardIcon}
+                  color="orange"
                   title="Free gift rules"
                   description="Create, edit, and manage your Buy X Get Y Free rules."
                   buttonLabel="View rules"
@@ -230,6 +231,7 @@ export default function Index() {
                 />
                 <QuickActionCard
                   icon={PaintBrushFlatIcon}
+                  color="purple"
                   title="Popup design"
                   description="Customize how the free-gift-picker popup looks on your store."
                   buttonLabel="Customize"
@@ -237,6 +239,7 @@ export default function Index() {
                 />
                 <QuickActionCard
                   icon={CreditCardIcon}
+                  color="blue"
                   title="Plans & billing"
                   description="See your plan, rule limits, and upgrade options."
                   buttonLabel="View plans"
@@ -326,8 +329,9 @@ export default function Index() {
                   </Text>
                   <List>
                     <List.Item>
-                      The app can automatically set the free variant's price
-                      to $0.00 so it can be given away.
+                      A Shopify Function makes the free gift 100% off at
+                      checkout, automatically - the product's real price is
+                      never changed.
                     </List.Item>
                     <List.Item>
                       Shoppers who meet the condition get the free item

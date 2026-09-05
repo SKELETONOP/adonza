@@ -8,7 +8,6 @@ import {
   InlineStack,
   Text,
   Button,
-  Badge,
   Banner,
   Icon,
   Divider,
@@ -19,6 +18,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { getCurrentPlan, isTestBilling } from "../models/billing.server";
 import { PLAN_DETAILS, type PlanName } from "../models/plans";
+import { Pill } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -99,9 +99,9 @@ export default function Billing() {
                         {plan}
                       </Text>
                       {isCurrent ? (
-                        <Badge tone="success">Current plan</Badge>
+                        <Pill color="green">Current plan</Pill>
                       ) : details.recommended ? (
-                        <Badge tone="warning">Recommended</Badge>
+                        <Pill color="orange">Recommended</Pill>
                       ) : null}
                     </InlineStack>
 

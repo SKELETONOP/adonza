@@ -12,13 +12,12 @@ import {
   Select,
   Checkbox,
   Box,
-  Thumbnail,
   Icon,
   Divider,
-  Badge,
 } from "@shopify/polaris";
 import { XIcon, ImageIcon } from "@shopify/polaris-icons";
 import { useAppBridge } from "@shopify/app-bridge-react";
+import { Pill, ProductThumb } from "./ui";
 
 export type PickedVariant = {
   id: string;
@@ -116,11 +115,7 @@ function ItemCard({
       background="bg-surface-secondary"
     >
       <InlineStack gap="300" blockAlign="center" wrap={false}>
-        <Thumbnail
-          source={item.imageUrl || ImageIcon}
-          alt={item.productTitle}
-          size="medium"
-        />
+        <ProductThumb src={item.imageUrl} alt={item.productTitle} size={56} />
         <Box width="100%">
           <BlockStack gap="150">
             <Text as="span" fontWeight="semibold">
@@ -275,9 +270,9 @@ export default function RuleForm({
       backAction={{ content: "Rules", onAction: () => navigate("/app/rules") }}
       title={isEditing ? "Edit rule" : "Create rule"}
       titleMetadata={
-        <Badge tone={active ? "success" : undefined}>
+        <Pill color={active ? "green" : "gray"}>
           {active ? "Active" : "Inactive"}
-        </Badge>
+        </Pill>
       }
       subtitle="Buy X, get Y free"
     >

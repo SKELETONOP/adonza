@@ -10,14 +10,15 @@ import {
   Text,
   Button,
   Select,
-  Box,
   TextField,
   Divider,
 } from "@shopify/polaris";
+import { NoteIcon, PaintBrushFlatIcon, ViewIcon } from "@shopify/polaris-icons";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { getDesignSettings, saveDesignSettings } from "../models/design.server";
 import type { DesignSettings, ImageShape } from "../models/design";
+import { IconBadge } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
@@ -187,9 +188,12 @@ export default function Design() {
           <BlockStack gap="400">
             <Card>
               <BlockStack gap="400">
-                <Text as="h2" variant="headingMd">
-                  Content
-                </Text>
+                <InlineStack gap="200" blockAlign="center">
+                  <IconBadge icon={NoteIcon} color="purple" />
+                  <Text as="h2" variant="headingMd">
+                    Content
+                  </Text>
+                </InlineStack>
                 <Divider />
                 <TextField
                   label="Popup heading"
@@ -212,9 +216,12 @@ export default function Design() {
 
             <Card>
               <BlockStack gap="400">
-                <Text as="h2" variant="headingMd">
-                  Appearance
-                </Text>
+                <InlineStack gap="200" blockAlign="center">
+                  <IconBadge icon={PaintBrushFlatIcon} color="orange" />
+                  <Text as="h2" variant="headingMd">
+                    Appearance
+                  </Text>
+                </InlineStack>
                 <Divider />
 
                 <Select
@@ -266,16 +273,57 @@ export default function Design() {
         </Layout.Section>
         <Layout.Section variant="oneThird">
           <BlockStack gap="300">
-            <Text as="h3" variant="headingSm">
-              Live preview
-            </Text>
-            <Box
-              background="bg-surface-secondary"
-              padding="600"
-              borderRadius="200"
+            <InlineStack gap="200" blockAlign="center">
+              <IconBadge icon={ViewIcon} color="blue" />
+              <Text as="h3" variant="headingSm">
+                Live preview
+              </Text>
+            </InlineStack>
+            <div
+              style={{
+                position: "relative",
+                background:
+                  "linear-gradient(160deg, #ede3ff 0%, #f6ecff 55%, #fff0e6 100%)",
+                borderRadius: 16,
+                padding: "56px 24px 32px",
+                display: "flex",
+                justifyContent: "center",
+              }}
             >
+              <span style={{ position: "absolute", top: 14, left: 22, fontSize: 18 }}>
+                🎉
+              </span>
+              <span
+                style={{ position: "absolute", top: 20, right: 30, fontSize: 16 }}
+              >
+                ✨
+              </span>
+              <span
+                style={{ position: "absolute", top: 60, left: 12, fontSize: 14 }}
+              >
+                ⭐
+              </span>
+              <div
+                style={{
+                  position: "absolute",
+                  top: -18,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  boxShadow: "0 8px 20px rgba(124, 58, 237, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 26,
+                }}
+              >
+                🎁
+              </div>
               <PreviewCard design={design} />
-            </Box>
+            </div>
           </BlockStack>
         </Layout.Section>
       </Layout>

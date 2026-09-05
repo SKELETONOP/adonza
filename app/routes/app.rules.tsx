@@ -5,22 +5,18 @@ import {
   Card,
   IndexTable,
   Text,
-  Badge,
   EmptyState,
   useIndexResourceState,
   Button,
   InlineStack,
-  Banner,
   BlockStack,
-  Thumbnail,
-  Box,
 } from "@shopify/polaris";
-import { ImageIcon } from "@shopify/polaris-icons";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { getCurrentPlan } from "../models/billing.server";
 import { ruleLimitFor } from "../models/plans";
+import { Pill, ProductThumb, UpgradeBanner } from "../components/ui";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
@@ -70,25 +66,16 @@ function ThumbnailStack({
 }) {
   const shown = items.slice(0, 3);
   if (shown.length === 0) {
-    return <Thumbnail source={ImageIcon} alt="No product" size="small" />;
+    return <ProductThumb alt="No product" />;
   }
   return (
     <InlineStack gap="100" blockAlign="center">
       {shown.map((item, i) => (
-        <Box
+        <ProductThumb
           key={i}
-          borderRadius="100"
-          borderWidth="025"
-          borderColor="border"
-          overflowX="hidden"
-          overflowY="hidden"
-        >
-          <Thumbnail
-            source={item.imageUrl || ImageIcon}
-            alt={item.productTitle}
-            size="small"
-          />
-        </Box>
+          src={item.imageUrl}
+          alt={item.productTitle}
+        />
       ))}
     </InlineStack>
   );
@@ -128,25 +115,19 @@ export default function RulesIndex() {
       </TitleBar>
       <BlockStack gap="400">
         {atLimit && (
-          <Banner tone="warning" title="Rule limit reached">
-            <BlockStack gap="200">
-              <p>
-                Your {plan} plan allows{" "}
-                {limit === Infinity ? "unlimited" : `up to ${limit}`} rule
-                {limit === 1 ? "" : "s"}. Upgrade to add more.
-              </p>
-              <div>
-                <Button url="/app/billing">View plans</Button>
-              </div>
-            </BlockStack>
-          </Banner>
+          <UpgradeBanner
+            message={`Your ${plan} plan allows ${
+              limit === Infinity ? "unlimited" : `up to ${limit}`
+            } rule${limit === 1 ? "" : "s"}. Upgrade to add more.`}
+            actionUrl="/app/billing"
+          />
         )}
 
         {rules.length > 0 && (
           <InlineStack gap="200">
-            <Badge tone="info" size="large">{`${rules.length} total`}</Badge>
-            <Badge tone="success" size="large">{`${activeCount} active`}</Badge>
-            <Badge size="large">{`${plan} plan`}</Badge>
+            <Pill color="blue">{`${rules.length} total`}</Pill>
+            <Pill color="green">{`${activeCount} active`}</Pill>
+            <Pill color="gray">{`${plan} plan`}</Pill>
           </InlineStack>
         )}
 
@@ -223,9 +204,9 @@ export default function RulesIndex() {
                     </BlockStack>
                   </IndexTable.Cell>
                   <IndexTable.Cell>
-                    <Badge tone={rule.active ? "success" : undefined}>
+                    <Pill color={rule.active ? "green" : "gray"}>
                       {rule.active ? "Active" : "Inactive"}
-                    </Badge>
+                    </Pill>
                   </IndexTable.Cell>
                   <IndexTable.Cell>
                     <InlineStack gap="200">
