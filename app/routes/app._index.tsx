@@ -41,7 +41,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getCurrentPlan({ billing }),
   ]);
 
-  return { activeCount, totalCount, plan, limit: ruleLimitFor(plan) };
+  // Deep link straight to activating the app embed block, instead of just
+  // the generic theme editor - see shopify.dev's theme app extension
+  // deep-linking docs. "bogo-free-gift" is the block's handle (the
+  // filename of extensions/bogo-free-gift/blocks/bogo-free-gift.liquid).
+  const embedDeepLink = `https://${session.shop}/admin/themes/current/editor?context=apps&activateAppId=${process.env.SHOPIFY_API_KEY}/bogo-free-gift`;
+
+  return {
+    activeCount,
+    totalCount,
+    plan,
+    limit: ruleLimitFor(plan),
+    embedDeepLink,
+  };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -134,7 +146,7 @@ function SetupStep({
 }
 
 export default function Index() {
-  const { activeCount, totalCount, plan, limit } =
+  const { activeCount, totalCount, plan, limit, embedDeepLink } =
     useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const fetcher = useFetcher<typeof action>();
@@ -296,15 +308,12 @@ export default function Index() {
                     title="Enable the app embed"
                     description={
                       <>
-                        Turn on the "Buy X Get Y Free" embed in your{" "}
-                        <Link
-                          url="shopify:admin/themes/current/editor"
-                          target="_blank"
-                          removeUnderline
-                        >
-                          theme editor
-                        </Link>{" "}
-                        (App embeds section).
+                        Turn on the "Buy X Get Y Free" embed - this link
+                        opens your theme editor with it ready to{" "}
+                        <Link url={embedDeepLink} target="_blank" removeUnderline>
+                          activate directly
+                        </Link>
+                        .
                       </>
                     }
                   />
