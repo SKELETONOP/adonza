@@ -22,9 +22,12 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>Buy X Get Y Free</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+          Automatic free-gift promotions for your storefront - configure a
+          rule once, and the free item is added to a shopper's cart
+          automatically whenever they qualify. No discount codes, no theme
+          code.
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
@@ -40,16 +43,19 @@ export default function App() {
         )}
         <ul className={styles.list}>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Buy X, get Y free.</strong> Pick any product(s) as the
+            trigger and any product(s) as the free gift - condition can be a
+            quantity or a total amount spent.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Automatic, at checkout.</strong> A Shopify Function makes
+            the gift 100% off without ever touching the product's real
+            price.
           </li>
           <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
+            <strong>Customize the popup.</strong> When a rule offers more
+            than one gift, shoppers pick via a popup you can brand to match
+            your store.
           </li>
         </ul>
       </div>
