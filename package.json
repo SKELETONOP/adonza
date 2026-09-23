@@ -44,7 +44,7 @@
     "@remix-run/eslint-config": "^2.16.1",
     "@remix-run/route-config": "^2.16.1",
     "@shopify/api-codegen-preset": "^1.1.1",
-    "eslint": "^8.42.0",
+    "eslint": "^10.9.0",
     "eslint-config-prettier": "^10.0.1",
     "prettier": "^3.2.4",
     "vite": "^6.2.2"
