@@ -177,18 +177,42 @@ instead of just your dev store:
 2. **The web app** (the Remix admin + API routes) needs to run 24/7 on a
    real server with a stable HTTPS URL, instead of only while `npm run dev`
    is open on your laptop.
-3. **The database** needs to be a real hosted Postgres instance instead of
-   the local `dev.sqlite` file — most hosting platforms wipe local files on
-   every deploy, so a SQLite file would lose all your merchants' rules.
+3. **The database** needs to be a real hosted MongoDB instance instead of
+   a local database — most hosting platforms wipe local files on every
+   deploy, so anything local would lose all your merchants' rules.
 
-The schema (`prisma/schema.prisma`) is already set up for PostgreSQL, and
-`prisma/migrations/20260828000000_init` is a clean Postgres-native
-migration ready to run against a real database.
+The schema (`prisma/schema.prisma`) is set up for MongoDB: `triggerItems`
+and `freeOptions` are embedded composite types on `Rule` (not a separate
+collection), so there's no join/relation to manage. MongoDB has no SQL-style
+migrations — instead of `prisma migrate`, this project uses
+`prisma db push` to sync the schema straight to the database (see `setup`
+in `package.json`).
 
-### Recommended: Railway
+### Database: MongoDB Atlas
 
-[Railway](https://railway.app) is a beginner-friendly host: connect a
-GitHub repo, click deploy, done — no server administration.
+[MongoDB Atlas](https://www.mongodb.com/cloud/atlas) is the managed option —
+free tier available, and it gives you a replica set automatically, which
+Prisma's MongoDB connector requires (a bare single-node `mongod` won't work
+without extra replica-set configuration).
+
+1. Create a free cluster at atlas.mongodb.com.
+2. Database Access → add a database user (username/password).
+3. Network Access → allow the IP(s) your app server connects from (or
+   `0.0.0.0/0` for "anywhere", simplest while you're still setting things
+   up — tighten it later).
+4. Connect → "Drivers" → copy the connection string. It looks like:
+   ```
+   mongodb+srv://<user>:<password>@<cluster>.mongodb.net/adonza?retryWrites=true&w=majority
+   ```
+   Use this as `DATABASE_URL`. Note the `/adonza` — that's the database
+   name; Prisma/Mongo creates it automatically the first time you write to
+   it, no separate "create database" step needed.
+5. Push the schema once you have a real connection string:
+   ```
+   npx prisma db push
+   ```
+
+### Web app: your own VPS
 
 1. **Push this repo to GitHub** (skip if already done):
    ```
@@ -196,93 +220,49 @@ GitHub repo, click deploy, done — no server administration.
    git branch -M main
    git push -u origin main
    ```
-   (Create the empty repo first at github.com → "New repository" — don't
-   initialize it with a README, since this project already has one.)
 
-2. **Create a Railway project**: sign in at railway.app → "New Project" →
-   "Deploy from GitHub repo" → pick this repo. Railway will detect the
-   `Dockerfile` and build from it automatically.
+2. **On the VPS**, either:
+   - **With Docker** (recommended — matches the `Dockerfile` already in
+     this repo): install Docker, `git clone` the repo, `docker build` +
+     `docker run` it with the env vars below, and put Nginx in front of it
+     as a reverse proxy with a Let's Encrypt (certbot) certificate for
+     HTTPS — Shopify embedded apps require HTTPS.
+   - **Without Docker**: install Node (see `engines` in `package.json` for
+     the required version), `npm ci`, `npm run build`, run it with PM2
+     (`pm2 start npm --name adonza -- start`) so it survives reboots/crashes,
+     and put Nginx + certbot in front of it the same way.
 
-3. **Database: skip Railway's "Add PostgreSQL" — this project uses Neon
-   instead.** See "Database: Neon" below for details. Grab the
-   **`production`** branch's connection strings with
-   `npx neon@latest connection-string --branch production` (add
-   `--pooled` for the pooled one) and use those for `DATABASE_URL` /
-   `DATABASE_URL_UNPOOLED` in step 4.
-
-4. **Set environment variables** on the web service (Settings → Variables):
+3. **Set environment variables** (in a `.env` file next to the app, or
+   however your process manager injects them):
    - `SHOPIFY_API_KEY`, `SHOPIFY_API_SECRET` — from `shopify.app.toml` /
      your Partner Dashboard app settings.
    - `SCOPES` — `read_products,read_discounts,write_discounts`
-   - `SHOPIFY_APP_URL` — the Railway-provided URL (Settings → Networking →
-     "Generate Domain" if you don't have one yet; you'll get something like
-     `your-app.up.railway.app`).
-   - `DATABASE_URL`, `DATABASE_URL_UNPOOLED` — the `production` branch
-     connection strings from step 3.
+   - `SHOPIFY_APP_URL` — your domain, e.g. `https://app.yourdomain.com`.
+   - `DATABASE_URL` — the MongoDB Atlas connection string from above.
    - `NODE_ENV` — `production`
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`,
      `SMTP_FROM`, `FEEDBACK_NOTIFICATION_EMAIL` — same as your local `.env`,
      for the feedback-form email.
 
-5. **Deploy**: Railway redeploys automatically on every push to `main`.
-   The Dockerfile's `docker-start` script runs `prisma migrate deploy`
-   before starting the server, so the database schema is created
-   automatically on first boot.
-
-6. **Point Shopify at the real URL**: update `application_url` and
-   `[app_proxy].url` in `shopify.app.toml` to your Railway domain (from
-   step 4), then run:
+4. **Point Shopify at the real URL**: update `application_url` and
+   `[app_proxy].url` in `shopify.app.toml` to your domain, then run:
    ```
    npm run deploy
    ```
    This pushes the URL, scopes, and webhook config to Shopify. Existing
    installs will be prompted to re-approve if scopes changed.
 
-Render (render.com) works almost identically if you'd rather use that —
-same Dockerfile, same "add a Postgres, set env vars, deploy" flow.
-
-### Database: Neon (not Railway's own Postgres)
-
-This project actually uses [Neon](https://neon.tech) for Postgres — project
-**adonza** (`spring-rice-37354442`) in org **Optezo**
-(`org-fragrant-glade-73235864`) — rather than Railway's built-in database.
-Two branches exist:
-
-- **`production`** — the real database. This is what `DATABASE_URL` /
-  `DATABASE_URL_UNPOOLED` on your production host (Railway/Render) should
-  point at.
-- **`development`** — a copy-on-write branch off `production`, used for
-  local work so testing never touches real merchant data. Local `.env` is
-  currently checked out to this branch (see `.neon`, which is git-ignored).
-
-Useful commands (from the `neon` / `neon-postgres` agent skills installed
-in `.agents/skills/`):
-
-```
-npx neon@latest checkout development   # switch local .env back to the dev branch
-npx neon@latest checkout production    # switch local .env to production (careful!)
-npx neon@latest branches list          # see all branches
-npx neon env pull                      # re-pull the current branch's env vars
-```
-
-`DATABASE_URL` is the pooled connection (app queries); `DATABASE_URL_UNPOOLED`
-is direct (Prisma Migrate uses it automatically via `directUrl` in
-`prisma/schema.prisma`). Never swap these — running migrations over the
-pooled connection can fail in ways that don't obviously mention pooling.
-
-If you deploy on Railway/Render as described above, skip their "Add
-PostgreSQL" step entirely and just set `DATABASE_URL` /
-`DATABASE_URL_UNPOOLED` to the **`production`** branch's connection strings
-instead (`npx neon@latest connection-string --branch production`).
-
 ## Local development commands already verified in this environment
 
 ```
 npm install                 # done
-npx prisma generate         # done
-npx prisma migrate dev      # done — creates the Rule table
-npm run build                # type-checks and builds the Remix app
+npx prisma generate         # done — MongoDB client generated
+npm run build                # builds the Remix app (plain JS/JSX, no type-checking step)
 ```
+
+`npx prisma db push` needs a real MongoDB connection string in `DATABASE_URL`
+and hasn't been run against a live database yet — do this once Atlas (or
+your own MongoDB) is set up.
 
 `shopify app dev` / `shopify app deploy` were **not** run here because they
 require an interactive browser login to your Shopify Partner account.
