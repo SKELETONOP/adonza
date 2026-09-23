@@ -2,7 +2,7 @@
 
 client_id = "76f4df956871532c2101908e84d65451"
 name = "Adonza"
-application_url = "https://adonza-production.up.railway.app"
+application_url = "https://adonza.duckdns.org"
 embedded = true
 
 [build]
@@ -17,19 +17,19 @@ scopes = "read_products,read_discounts,write_discounts"
 # `shopify app dev` / `shopify app deploy` keep the `url` in sync with your
 # current app URL automatically - you don't need to edit it by hand.
 [app_proxy]
-url = "https://adonza-production.up.railway.app"
+url = "https://adonza.duckdns.org"
 prefix = "apps"
 subpath = "bogo"
 
 [webhooks]
 api_version = "2026-10"
 
-  # Handled by: /app/routes/webhooks.app.uninstalled.tsx
+  # Handled by: /app/routes/webhooks.app.uninstalled.jsx
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/uninstalled"
   topics = ["app/uninstalled"]
 
-  # Handled by: /app/routes/webhooks.app.scopes_update.tsx
+  # Handled by: /app/routes/webhooks.app.scopes_update.jsx
   [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
   uri = "/webhooks/app/scopes_update"
@@ -37,20 +37,20 @@ api_version = "2026-10"
   # Mandatory compliance webhooks for public apps. This app never stores
   # Shopify customer data, so there's nothing to export/redact - these just
   # acknowledge the request (required regardless).
-  # Handled by: /app/routes/webhooks.customers.data_request.tsx
+  # Handled by: /app/routes/webhooks.customers.data_request.jsx
   [[webhooks.subscriptions]]
   uri = "/webhooks/customers/data_request"
   compliance_topics = ["customers/data_request"]
 
-  # Handled by: /app/routes/webhooks.customers.redact.tsx
+  # Handled by: /app/routes/webhooks.customers.redact.jsx
   [[webhooks.subscriptions]]
   uri = "/webhooks/customers/redact"
   compliance_topics = ["customers/redact"]
 
-  # Handled by: /app/routes/webhooks.shop.redact.tsx
+  # Handled by: /app/routes/webhooks.shop.redact.jsx
   [[webhooks.subscriptions]]
   uri = "/webhooks/shop/redact"
   compliance_topics = ["shop/redact"]
 
 [auth]
-redirect_urls = [ "https://adonza-production.up.railway.app/auth/callback" ]
+redirect_urls = [ "https://adonza.duckdns.org/auth/callback" ]
