@@ -5,7 +5,7 @@ import {
   BillingInterval,
   shopifyApp,
 } from "@shopify/shopify-app-remix/server";
-import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
+import { MongoSessionStorage } from "./models/mongo-session-storage.server";
 import prisma from "./db.server";
 
 // "Basic" isn't listed here on purpose - Shopify's Billing API doesn't
@@ -40,7 +40,7 @@ const shopify = shopifyApp({
   scopes: process.env.SCOPES?.split(","),
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
-  sessionStorage: new PrismaSessionStorage(prisma),
+  sessionStorage: new MongoSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
   billing: BILLING_PLANS,
   future: {
