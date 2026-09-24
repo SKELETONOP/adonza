@@ -2,7 +2,7 @@
 
 client_id = "76f4df956871532c2101908e84d65451"
 name = "Adonza"
-application_url = "https://adonza.duckdns.org:9443"
+application_url = "https://adonza.duckdns.org"
 embedded = true
 
 [build]
@@ -17,7 +17,7 @@ scopes = "read_products,read_discounts,write_discounts"
 # `shopify app dev` / `shopify app deploy` keep the `url` in sync with your
 # current app URL automatically - you don't need to edit it by hand.
 [app_proxy]
-url = "https://adonza.duckdns.org:9443"
+url = "https://adonza.duckdns.org"
 prefix = "apps"
 subpath = "bogo"
 
@@ -53,4 +53,4 @@ api_version = "2026-10"
   compliance_topics = ["shop/redact"]
 
 [auth]
-redirect_urls = [ "https://adonza.duckdns.org:9443/auth/callback" ]
+redirect_urls = [ "https://adonza.duckdns.org/auth/callback" ]
